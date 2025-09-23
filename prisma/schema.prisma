@@ -19,8 +19,110 @@ model User {
   name      String?
   email     String   @unique
   password  String
+  phone     String?
+  role      Role     @default(MEMBER)
   image     String?
-  role      String   @default("member")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // ความสัมพันธ์
+  repairRequests  RepairRequest[] // ลูกค้าหรือร้านที่แจ้งซ่อม
+  assignedRepairs RepairDetail[]  @relation("TechnicianRepairs") // งานที่ถูก assign ให้ช่าง
+}
+
+enum Role {
+  MEMBER // ลูกค้าทั่วไป
+  SHOP // ร้าน/ศูนย์ซ่อม
+  TECHNICIAN // ช่าง
+  ADMIN
+}
+
+// ----------------- Repair Request -----------------
+
+model RepairRequest {
+  id           Int          @id @default(autoincrement())
+  printerModel String
+  serialNumber String
+  customerId   Int
+  customer     User         @relation(fields: [customerId], references: [id])
+  address      String?
+  issueDesc    String // อาการเสีย
+  accessories  String? // อุปกรณ์ที่ส่งมาด้วย
+  requestDate  DateTime     @default(now())
+  contactInfo  String?
+  status       RepairStatus @default(PENDING)
+
+  // ความสัมพันธ์
+  images    RepairImage[]
+  details   RepairDetail?
+  shipping  Shipping?
+  closedJob CloseRepair?
+}
+
+enum RepairStatus {
+  PENDING // รอซ่อม
+  IN_PROGRESS // กำลังซ่อม
+  WAITING_PARTS // รออะไหล่
+  WAITING_CONFIRM // รอลูกค้ายืนยันราคา
+  COMPLETED // ซ่อมเสร็จ
+  SHIPPED // ส่งคืนแล้ว
+  CLOSED // ปิดงาน
+}
+
+// ----------------- Repair Images -----------------
+
+model RepairImage {
+  id              Int           @id @default(autoincrement())
+  repairRequestId Int
+  repairRequest   RepairRequest @relation(fields: [repairRequestId], references: [id])
+  url             String
+  uploadedAt      DateTime      @default(now())
+}
+
+// ----------------- Repair Details -----------------
+
+model RepairDetail {
+  id              Int           @id @default(autoincrement())
+  repairRequestId Int           @unique
+  repairRequest   RepairRequest @relation(fields: [repairRequestId], references: [id])
+
+  notes        String?
+  technicianId Int?
+  technician   User?        @relation("TechnicianRepairs", fields: [technicianId], references: [id])
+  parts        RepairPart[]
+  updatedAt    DateTime     @updatedAt
+}
+
+model RepairPart {
+  id       Int          @id @default(autoincrement())
+  detailId Int
+  detail   RepairDetail @relation(fields: [detailId], references: [id])
+  partName String
+  price    Float
+  quantity Int          @default(1)
+}
+
+// ----------------- Shipping -----------------
+
+model Shipping {
+  id              Int           @id @default(autoincrement())
+  repairRequestId Int           @unique
+  repairRequest   RepairRequest @relation(fields: [repairRequestId], references: [id])
+
+  company        String
+  trackingNumber String
+  sentDate       DateTime
+  status         String?
+}
+
+// ----------------- Close Repair -----------------
+
+model CloseRepair {
+  id              Int           @id @default(autoincrement())
+  repairRequestId Int           @unique
+  repairRequest   RepairRequest @relation(fields: [repairRequestId], references: [id])
+
+  finishedDate DateTime
+  receivedDate DateTime?
+  receiptUrl   String? // ใบเสร็จ/ใบรับรอง
 }
