@@ -1,10 +1,10 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
-import Image from "next/image";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
-export default function Sidebar({ isOpen }) {
-  const router = useRouter();
+const Sidebar = () => {
   const pathname = usePathname();
 
   const menuItems = [
@@ -17,40 +17,23 @@ export default function Sidebar({ isOpen }) {
   ];
 
   return (
-    <aside
-      className={`bg-white shadow h-screen transition-all duration-300 flex flex-col items-center
-        ${isOpen ? "w-64" : "hidden"}`}
-    >
-      {/* โลโก้ */}
-      <div className="p-6 flex flex-col items-center">
-        <Image
-          src="/pheonix_logo.png"
-          alt="Company Logo"
-          width={120}
-          height={120}
-          className="object-contain"
-        />
-      </div>
-
-      {/* เมนู */}
-      <nav className="flex flex-col w-full mt-6 gap-2">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.path;
-          return (
-            <button
-              key={item.name}
-              onClick={() => router.push(item.path)}
-              className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                isActive
-                  ? "bg-blue-600 text-white font-semibold"
-                  : "text-gray-700 hover:bg-blue-50"
-              }`}
-            >
-              {item.name}
-            </button>
-          );
-        })}
+    <aside className="w-64 p-4 border-r border-border">
+      <nav className="flex flex-col gap-2">
+        {menuItems.map((item) => (
+          <Link
+            key={item.path}
+            href={item.path}
+            className={cn(
+              "px-2 py-1 rounded transition-colors",
+              pathname === item.path ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"
+            )}
+          >
+            {item.name}
+          </Link>
+        ))}
       </nav>
     </aside>
   );
-}
+};
+
+export default Sidebar;

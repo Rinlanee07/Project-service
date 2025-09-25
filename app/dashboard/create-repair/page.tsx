@@ -4,301 +4,333 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import DashboardLayout from "../../components/DashboardLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Upload, X, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-export default function CreateRepairPage() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const role = session?.user?.role;
+const CreateRepair = () => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const { toast } = useToast();
 
-  const [form, setForm] = useState({
-    printerModel: "",
-    serialNumber: "",
-    customerId: "",
-    address: "",
-    issueDesc: "",
-    accessoriesPreset: {
-      powerCable: false,
-      usbCable: false,
-      tray: false,
-      cartridge: false,
-    },
-    accessoriesText: "",
-    requestDate: new Date().toISOString().slice(0, 16),
-    contactPhone: session?.user?.phone || "",
-    contactEmail: session?.user?.email || "",
-    preferredContact: "phone",
-    images: [],
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  const isAllowed = role === "MEMBER" || role === "SHOP";
-
-  const accessoriesTextComputed = useMemo(() => {
-    const items = Object.entries(form.accessoriesPreset)
-      .filter(([, v]) => v)
-      .map(([k]) => k);
-    return [items.join(", "), form.accessoriesText].filter(Boolean).join("; ");
-  }, [form.accessoriesPreset, form.accessoriesText]);
-
-  const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleAccessoryToggle = (key) => {
-    setForm((prev) => ({
-      ...prev,
-      accessoriesPreset: { ...prev.accessoriesPreset, [key]: !prev.accessoriesPreset[key] },
-    }));
-  };
-
-  const handleImages = (files) => {
-    const selected = Array.from(files || []);
-    const maxFiles = 5;
-    const valid = [];
-    const newErrors = {};
-
-    for (const f of selected.slice(0, maxFiles)) {
-      if (f.size > 5 * 1024 * 1024) {
-        newErrors.images = "รูปต้องไม่เกิน 5MB ต่อไฟล์ (สูงสุด 5 รูป)";
-        continue;
-      }
-      if (!/^image\//.test(f.type)) {
-        newErrors.images = "อนุญาตเฉพาะไฟล์รูปภาพ";
-        continue;
-      }
-      valid.push(f);
-    }
-    setErrors((e) => ({ ...e, ...newErrors }));
-    setForm((prev) => ({ ...prev, images: valid }));
-  };
-
-  const validate = () => {
-    const v = {};
-    if (!form.printerModel.trim()) v.printerModel = "กรุณากรอกรุ่นปริ้นเตอร์";
-    if (!form.serialNumber.trim()) v.serialNumber = "กรุณากรอก Serial Number";
-    if (role === "SHOP" && !form.customerId) v.customerId = "เลือกลูกค้า";
-    if (!form.issueDesc.trim()) v.issueDesc = "กรุณาระบุอาการเสีย";
-    if (!form.address.trim()) v.address = "กรุณากรอกที่อยู่";
-    return v;
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const v = validate();
-    setErrors(v);
-    if (Object.keys(v).length) return;
-
-    setSubmitting(true);
-    try {
-      const body = new FormData();
-      body.append("printerModel", form.printerModel);
-      body.append("serialNumber", form.serialNumber);
-      if (role === "SHOP") body.append("customerId", String(form.customerId));
-      body.append("address", form.address);
-      body.append("issueDesc", form.issueDesc);
-      body.append("accessories", accessoriesTextComputed);
-      body.append("requestDate", new Date(form.requestDate).toISOString());
-      body.append("contactInfo", JSON.stringify({
-        phone: form.contactPhone,
-        email: form.contactEmail,
-        preferred: form.preferredContact,
-      }));
-      for (const img of form.images) body.append("images", img);
-
-      const res = await fetch("/api/repairs", { method: "POST", body });
-      if (!res.ok) throw new Error("สร้างงานไม่สำเร็จ");
-      const data = await res.json();
-      router.push(`/dashboard/repair-details?id=${data.id}`);
-    } catch (err) {
-      alert(err.message || "เกิดข้อผิดพลาดในการบันทึก");
-    } finally {
-      setSubmitting(false);
-    }
+    setShowConfirmation(true);
   };
 
-  if (status === "loading") return <p>Loading...</p>;
-  if (!session) return <p>กรุณาล็อกอิน</p>;
-  if (!isAllowed) return (
-    <DashboardLayout user={session.user}>
-      <div className="max-w-3xl mx-auto"><p>คุณไม่มีสิทธิ์เข้าหน้านี้</p></div>
-    </DashboardLayout>
-  );
+  const handleConfirm = () => {
+    toast({
+      title: "Repair Created Successfully",
+      description: "Repair #RX005 has been created and assigned to a technician.",
+    });
+    setShowConfirmation(false);
+    // Reset form or redirect
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setAttachments([...attachments, ...files.slice(0, 5 - attachments.length)]);
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
+  };
 
   return (
-    <DashboardLayout user={session.user}>
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">แจ้งซ่อมใหม่</h1>
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Create New Repair</h1>
+          <p className="text-muted-foreground">
+            Fill in the details below to create a new repair request.
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="bg-white p-4 rounded shadow space-y-4">
-            <h2 className="font-semibold">ข้อมูลเครื่อง</h2>
-            <div>
-              <label className="block text-sm mb-1">รุ่นปริ้นเตอร์</label>
-              <input
-                className="w-full border px-3 py-2 rounded"
-                value={form.printerModel}
-                onChange={(e) => handleChange("printerModel", e.target.value)}
-                placeholder="เช่น HP LaserJet Pro M404dn"
-              />
-              {errors.printerModel && <p className="text-red-600 text-sm mt-1">{errors.printerModel}</p>}
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Serial Number</label>
-              <input
-                className="w-full border px-3 py-2 rounded"
-                value={form.serialNumber}
-                onChange={(e) => handleChange("serialNumber", e.target.value)}
-                placeholder="SN-XXXXXX"
-              />
-              {errors.serialNumber && <p className="text-red-600 text-sm mt-1">{errors.serialNumber}</p>}
-            </div>
-            <div>
-              <label className="block text-sm mb-1">อุปกรณ์แนบมา</label>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.keys(form.accessoriesPreset).map((k) => (
-                  <label key={k} className="inline-flex items-center gap-2">
-                    <input type="checkbox" checked={form.accessoriesPreset[k]} onChange={() => handleAccessoryToggle(k)} />
-                    <span>{k}</span>
-                  </label>
-                ))}
+          {/* Device Information */}
+          <Card className="bg-gradient-card border-glass shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                Device Information
+                <Badge variant="outline">Required</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="serial">Serial Number *</Label>
+                  <Input
+                    id="serial"
+                    placeholder="Enter device serial number"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="model">Device Model *</Label>
+                  <Select required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select device model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="iphone14pro">iPhone 14 Pro</SelectItem>
+                      <SelectItem value="iphone14">iPhone 14</SelectItem>
+                      <SelectItem value="samsungs23">Samsung Galaxy S23</SelectItem>
+                      <SelectItem value="macbookair">MacBook Air M2</SelectItem>
+                      <SelectItem value="ipadpro">iPad Pro</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="brand">Brand</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="apple">Apple</SelectItem>
+                      <SelectItem value="samsung">Samsung</SelectItem>
+                      <SelectItem value="huawei">Huawei</SelectItem>
+                      <SelectItem value="xiaomi">Xiaomi</SelectItem>
+                      <SelectItem value="oppo">OPPO</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="warranty">Warranty Status</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select warranty status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="in-warranty">In Warranty</SelectItem>
+                      <SelectItem value="expired">Expired</SelectItem>
+                      <SelectItem value="unknown">Unknown</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <input
-                className="w-full border px-3 py-2 rounded mt-2"
-                value={form.accessoriesText}
-                onChange={(e) => handleChange("accessoriesText", e.target.value)}
-                placeholder="รายละเอียดเพิ่มเติม"
-              />
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
-          <section className="bg-white p-4 rounded shadow space-y-4">
-            <h2 className="font-semibold">ผู้ติดต่อ</h2>
-            {role === "SHOP" && (
-              <div>
-                <label className="block text-sm mb-1">ลูกค้า</label>
-                <select
-                  className="w-full border px-3 py-2 rounded"
-                  value={form.customerId}
-                  onChange={(e) => handleChange("customerId", e.target.value)}
-                >
-                  <option value="">-- เลือกลูกค้า (mock) --</option>
-                  <option value="1">ลูกค้า A</option>
-                  <option value="2">ลูกค้า B</option>
-                </select>
-                {errors.customerId && <p className="text-red-600 text-sm mt-1">{errors.customerId}</p>}
-              </div>
-            )}
-            <div>
-              <label className="block text-sm mb-1">ที่อยู่</label>
-              <textarea
-                className="w-full border px-3 py-2 rounded"
-                rows={3}
-                value={form.address}
-                onChange={(e) => handleChange("address", e.target.value)}
-              />
-              {errors.address && <p className="text-red-600 text-sm mt-1">{errors.address}</p>}
-            </div>
-            <div>
-              <label className="block text-sm mb-1">อาการเสีย</label>
-              <textarea
-                className="w-full border px-3 py-2 rounded"
-                rows={4}
-                value={form.issueDesc}
-                onChange={(e) => handleChange("issueDesc", e.target.value)}
-              />
-              {errors.issueDesc && <p className="text-red-600 text-sm mt-1">{errors.issueDesc}</p>}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm mb-1">วันที่/เวลาแจ้ง</label>
-                <input
-                  type="datetime-local"
-                  className="w-full border px-3 py-2 rounded"
-                  value={form.requestDate}
-                  onChange={(e) => handleChange("requestDate", e.target.value)}
+          {/* Problem Description */}
+          <Card className="bg-gradient-card border-glass shadow-card">
+            <CardHeader>
+              <CardTitle>Problem Description</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="symptoms">Symptoms *</Label>
+                <Textarea
+                  id="symptoms"
+                  placeholder="Describe the problem in detail..."
+                  rows={4}
+                  required
                 />
               </div>
-              <div>
-                <label className="block text-sm mb-1">ช่องทางติดต่อ</label>
-                <div className="flex gap-4 items-center">
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="pref"
-                      checked={form.preferredContact === "phone"}
-                      onChange={() => handleChange("preferredContact", "phone")}
-                    />
-                    <span>โทร</span>
-                  </label>
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="pref"
-                      checked={form.preferredContact === "email"}
-                      onChange={() => handleChange("preferredContact", "email")}
-                    />
-                    <span>Email</span>
-                  </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority Level</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="mt-2 grid grid-cols-1 gap-2">
-                  <input
-                    className="w-full border px-3 py-2 rounded"
-                    placeholder="เบอร์โทร"
-                    value={form.contactPhone}
-                    onChange={(e) => handleChange("contactPhone", e.target.value)}
-                  />
-                  <input
-                    className="w-full border px-3 py-2 rounded"
-                    placeholder="อีเมล"
-                    type="email"
-                    value={form.contactEmail}
-                    onChange={(e) => handleChange("contactEmail", e.target.value)}
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="category">Problem Category</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="screen">Screen/Display</SelectItem>
+                      <SelectItem value="battery">Battery</SelectItem>
+                      <SelectItem value="water">Water Damage</SelectItem>
+                      <SelectItem value="software">Software Issue</SelectItem>
+                      <SelectItem value="hardware">Hardware</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
-          <section className="bg-white p-4 rounded shadow space-y-4">
-            <h2 className="font-semibold">รูปภาพแนบ</h2>
-            <input type="file" multiple accept="image/*" onChange={(e) => handleImages(e.target.files)} />
-            {errors.images && <p className="text-red-600 text-sm mt-1">{errors.images}</p>}
-            {form.images.length > 0 && (
-              <div className="grid grid-cols-3 gap-3">
-                {form.images.map((img, idx) => (
-                  <div key={idx} className="border rounded p-2">
-                    <img
-                      src={URL.createObjectURL(img)}
-                      alt={`preview-${idx}`}
-                      className="w-full h-24 object-cover rounded"
-                    />
-                    <p className="text-xs mt-1 truncate">{img.name}</p>
+          {/* Attachments */}
+          <Card className="bg-gradient-card border-glass shadow-card">
+            <CardHeader>
+              <CardTitle>Attachments</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-2">
+                  Drop files here or click to upload
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Support: JPG, PNG, PDF (Max 5 files, 10MB each)
+                </p>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <Button variant="outline" asChild>
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    Select Files
+                  </label>
+                </Button>
+              </div>
+
+              {/* Uploaded Files */}
+              {attachments.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Uploaded Files</Label>
+                  <div className="space-y-2">
+                    {attachments.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                      >
+                        <span className="text-sm">{file.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeAttachment(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              className="px-4 py-2 rounded border"
-              onClick={() => router.back()}
-              disabled={submitting}
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="submit"
-              className={`px-4 py-2 rounded text-white ${submitting ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"}`}
-              disabled={submitting}
-            >
-              {submitting ? "กำลังบันทึก..." : "บันทึกงานซ่อม"}
-            </button>
+          {/* Customer Information */}
+          <Card className="bg-gradient-card border-glass shadow-card">
+            <CardHeader>
+              <CardTitle>Customer Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customer-name">Customer Name *</Label>
+                  <Input
+                    id="customer-name"
+                    placeholder="Enter customer name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="customer-phone">Phone Number *</Label>
+                  <Input
+                    id="customer-phone"
+                    type="tel"
+                    placeholder="Enter phone number"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="customer-email">Email Address</Label>
+                  <Input
+                    id="customer-email"
+                    type="email"
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="customer-address">Address</Label>
+                  <Input
+                    id="customer-address"
+                    placeholder="Enter address"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Additional Notes</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Any additional information..."
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Submit Button */}
+          <div className="flex justify-end gap-4">
+            <Button type="button" variant="outline">
+              Save as Draft
+            </Button>
+            <Button type="submit" variant="hero">
+              Create Repair Request
+            </Button>
           </div>
         </form>
+
+        {/* Confirmation Dialog */}
+        <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+          <DialogContent>
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+                <DialogTitle>Confirm Repair Creation</DialogTitle>
+              </div>
+              <DialogDescription>
+                Are you sure you want to create this repair request? This will generate a new repair ID and notify the assigned technician.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmation(false)}
+              >
+                Cancel
+              </Button>
+              <Button variant="hero" onClick={handleConfirm}>
+                Confirm & Create
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
-}
+};
+
+export default CreateRepair;

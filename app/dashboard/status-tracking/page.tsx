@@ -1,147 +1,453 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
-import DashboardLayout from "../../components/DashboardLayout";
+import { useState, useEffect} from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  MoreHorizontal,
+  Download,
+  RefreshCw,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Package,
+} from "lucide-react";
+import Link from "next/link";
+import DashboardLayout from "@/components/DashboardLayout";
+import { useToast } from "@/hooks/use-toast";
 
-const statuses = ["PENDING", "IN_PROGRESS", "WAITING_PARTS", "WAITING_CONFIRM", "COMPLETED"];
-
-function StatusBadge({ s }) {
-  const map = {
-    PENDING: "bg-gray-500",
-    IN_PROGRESS: "bg-blue-500",
-    WAITING_PARTS: "bg-purple-500",
-    WAITING_CONFIRM: "bg-orange-500",
-    COMPLETED: "bg-green-600",
-  };
-  return <span className={`px-2 py-1 rounded-full text-white text-xs ${map[s] || "bg-gray-400"}`}>{s.replace("_"," ")}</span>;
-}
-
-export default function StatusTrackingPage() {
-  const { data: session, status } = useSession();
-  const role = session?.user?.role;
-  const canUpdate = role === "SHOP" || role === "TECHNICIAN" || role === "ADMIN";
-
-  const [view, setView] = useState("table");
-  const [loading, setLoading] = useState(true);
-  const [rows, setRows] = useState([]);
-  const [filters, setFilters] = useState({ q: "", status: "" });
+const ClockBadge = () => {
+  const [time, setTime] = useState("");
 
   useEffect(() => {
-    if (!session) return;
-    setLoading(true);
-    fetch("/api/repairs")
-      .then((r) => r.json())
-      .then((json) => setRows(json))
-      .finally(() => setLoading(false));
-  }, [session]);
+    const updateTime = () => setTime(new Date().toLocaleTimeString());
+    updateTime(); // แสดงเวลาเลยตอน mount
+    const interval = setInterval(updateTime, 1000); // อัปเดตทุก 1 วินาที
+    return () => clearInterval(interval); // ล้าง interval ตอน unmount
+  }, []);
 
-  const filtered = useMemo(() => {
-    return rows.filter((r) => {
-      const hitQ = [r.serialNumber, r.printerModel, r.customer?.name].some((v) => (v || "").toLowerCase().includes(filters.q.toLowerCase()));
-      const hitS = filters.status ? r.status === filters.status : true;
-      return hitQ && hitS;
-    });
-  }, [rows, filters]);
+  return <Badge variant="outline">Updated: {time}</Badge>;
+};
 
-  const updateRowStatus = async (id, status) => {
-    if (!canUpdate) return;
-    await fetch(`/api/repairs/${id}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
-    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status } : r)));
+// Mock data
+const repairs = [
+  {
+    id: "RX001",
+    device: "iPhone 14 Pro",
+    customer: "John Smith",
+    issue: "Screen Replacement",
+    status: "In Progress",
+    priority: "High",
+    technician: "Mike Johnson",
+    created: "2024-01-15",
+    updated: "2024-01-15 14:30",
+    estimatedCompletion: "2024-01-16",
+    cost: "฿3,500",
+  },
+  {
+    id: "RX002",
+    device: "Samsung Galaxy S23",
+    customer: "Sarah Johnson",
+    issue: "Battery Replacement",
+    status: "Pending",
+    priority: "Medium",
+    technician: "Alice Chen",
+    created: "2024-01-14",
+    updated: "2024-01-14 16:00",
+    estimatedCompletion: "2024-01-17",
+    cost: "฿2,200",
+  },
+  {
+    id: "RX003",
+    device: "MacBook Air M2",
+    customer: "Mike Chen",
+    issue: "Keyboard Issue",
+    status: "Completed",
+    priority: "Low",
+    technician: "David Park",
+    created: "2024-01-13",
+    updated: "2024-01-15 11:00",
+    estimatedCompletion: "2024-01-15",
+    cost: "฿1,800",
+  },
+  {
+    id: "RX004",
+    device: "iPad Pro",
+    customer: "Lisa Wang",
+    issue: "Water Damage",
+    status: "Assessment",
+    priority: "High",
+    technician: "Mike Johnson",
+    created: "2024-01-12",
+    updated: "2024-01-12 09:30",
+    estimatedCompletion: "2024-01-18",
+    cost: "฿4,500",
+  },
+  {
+    id: "RX005",
+    device: "Google Pixel 7",
+    customer: "Tom Wilson",
+    issue: "Camera Issue",
+    status: "Parts Ordered",
+    priority: "Medium",
+    technician: "Alice Chen",
+    created: "2024-01-11",
+    updated: "2024-01-14 13:15",
+    estimatedCompletion: "2024-01-19",
+    cost: "฿2,800",
+  },
+];
+
+const statusStats = [
+  { status: "Pending", count: 12, color: "bg-yellow-100 text-yellow-800", icon: Clock },
+  { status: "In Progress", count: 8, color: "bg-blue-100 text-blue-800", icon: Package },
+  { status: "Completed", count: 25, color: "bg-green-100 text-green-800", icon: CheckCircle },
+  { status: "Assessment", count: 5, color: "bg-purple-100 text-purple-800", icon: AlertTriangle },
+];
+
+const StatusTracking = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const { toast } = useToast();
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Completed":
+        return "bg-green-100 text-green-800";
+      case "In Progress":
+        return "bg-blue-100 text-blue-800";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "Assessment":
+        return "bg-purple-100 text-purple-800";
+      case "Parts Ordered":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
-  if (status === "loading" || loading) return <p>Loading...</p>;
-  if (!session) return <p>กรุณาล็อกอิน</p>;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-800";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "Low":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const filteredRepairs = repairs.filter((repair) => {
+    const matchesSearch = 
+      repair.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      repair.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      repair.device.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || repair.status === statusFilter;
+    const matchesPriority = priorityFilter === "all" || repair.priority === priorityFilter;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  const handleQuickStatusUpdate = (repairId: string, newStatus: string) => {
+    toast({
+      title: "Status Updated",
+      description: `Repair ${repairId} status updated to ${newStatus}`,
+    });
+  };
 
   return (
-    <DashboardLayout user={session.user}>
-      <div className="space-y-4">
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Page Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">ติดตามสถานะ</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Status Tracking</h1>
+            <p className="text-muted-foreground">
+              Monitor and update repair statuses in real-time
+            </p>
+          </div>
           <div className="flex gap-2">
-            <button className={`px-3 py-1 rounded border ${view === "table" ? "bg-blue-600 text-white" : ""}`} onClick={() => setView("table")}>Table</button>
-            <button className={`px-3 py-1 rounded border ${view === "kanban" ? "bg-blue-600 text-white" : ""}`} onClick={() => setView("kanban")}>Kanban</button>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button variant="hero" asChild>
+              <Link href="/dashboard/create-repair">New Repair</Link>
+            </Button>
           </div>
         </div>
 
-        <div className="bg-white p-3 rounded shadow flex flex-wrap gap-3 items-center">
-          <input className="border px-3 py-2 rounded w-64" placeholder="ค้นหา Serial/รุ่น/ลูกค้า" value={filters.q} onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))} />
-          <select className="border px-3 py-2 rounded" value={filters.status} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}>
-            <option value="">ทุกสถานะ</option>
-            {statuses.map((s) => <option key={s} value={s}>{s.replace("_"," ")}</option>)}
-          </select>
-          {filters.q || filters.status ? (
-            <button className="px-3 py-2 border rounded" onClick={() => setFilters({ q: "", status: "" })}>ล้างตัวกรอง</button>
-          ) : null}
+        {/* Status Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {statusStats.map((stat) => (
+            <Card key={stat.status} className="bg-gradient-card border-glass shadow-card">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{stat.status}</p>
+                    <p className="text-2xl font-bold">{stat.count}</p>
+                  </div>
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <stat.icon className="h-5 w-5 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {view === "table" && (
-          <div className="overflow-x-auto border rounded">
-            <table className="min-w-full border-collapse">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-2 border text-left">Serial</th>
-                  <th className="p-2 border text-left">รุ่น</th>
-                  <th className="p-2 border text-left">ลูกค้า</th>
-                  <th className="p-2 border text-left">ร้าน</th>
-                  <th className="p-2 border text-left">สถานะ</th>
-                  <th className="p-2 border text-left">วันที่แจ้ง</th>
-                  <th className="p-2 border text-left">หมายเหตุ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((r, idx) => (
-                  <tr key={r.id} className={`odd:bg-white even:bg-gray-50`}>
-                    <td className="p-2 border">{r.serialNumber}</td>
-                    <td className="p-2 border">{r.printerModel}</td>
-                    <td className="p-2 border">{r.customer?.name || "-"}</td>
-                    <td className="p-2 border">{r.shop?.name || "-"}</td>
-                    <td className="p-2 border">
-                      {canUpdate ? (
-                        <select className="border px-2 py-1 rounded" value={r.status} onChange={(e) => updateRowStatus(r.id, e.target.value)}>
-                          {statuses.map((s) => <option key={s} value={s}>{s.replace("_"," ")}</option>)}
-                        </select>
-                      ) : (
-                        <StatusBadge s={r.status} />
-                      )}
-                    </td>
-                    <td className="p-2 border">{new Date(r.requestDate).toLocaleDateString()}</td>
-                    <td className="p-2 border text-sm text-gray-600">{r.remark || "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {view === "kanban" && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            {statuses.map((col) => (
-              <div key={col} className="bg-white rounded shadow p-3 min-h-64">
-                <div className="font-semibold mb-2 flex items-center justify-between">
-                  <span>{col.replace("_"," ")}</span>
-                  <span className="text-xs text-gray-500">{filtered.filter((r) => r.status === col).length}</span>
-                </div>
-                <div className="space-y-2">
-                  {filtered.filter((r) => r.status === col).map((r) => (
-                    <div key={r.id} className="border rounded p-2">
-                      <div className="font-medium">{r.serialNumber}</div>
-                      <div className="text-xs text-gray-600">{r.printerModel} · {r.customer?.name || "-"}</div>
-                      {canUpdate && (
-                        <div className="mt-2">
-                          <select className="border px-2 py-1 rounded w-full" value={r.status} onChange={(e) => updateRowStatus(r.id, e.target.value)}>
-                            {statuses.map((s) => <option key={s} value={s}>{s.replace("_"," ")}</option>)}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+        {/* Filters */}
+        <Card className="bg-gradient-card border-glass shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters & Search
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search repairs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            ))}
-          </div>
-        )}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Assessment">Assessment</SelectItem>
+                  <SelectItem value="Parts Ordered">Parts Ordered</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priority</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+                setPriorityFilter("all");
+              }}>
+                Clear Filters
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Repairs Table */}
+        <Card className="bg-gradient-card border-glass shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Repair Tracking ({filteredRepairs.length} items)
+              <ClockBadge />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Repair ID</TableHead>
+                    <TableHead>Device</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Issue</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Technician</TableHead>
+                    <TableHead>Est. Completion</TableHead>
+                    <TableHead>Cost</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRepairs.map((repair) => (
+                    <TableRow key={repair.id}>
+                      <TableCell className="font-medium">
+                        <Link 
+                          href="/dashboard/repair-details" 
+                          className="text-primary hover:underline"
+                        >
+                          {repair.id}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{repair.device}</TableCell>
+                      <TableCell>{repair.customer}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {repair.issue}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="p-0 h-auto">
+                              <Badge
+                                className={`${getStatusColor(repair.status)} cursor-pointer hover:opacity-80`}
+                              >
+                                {repair.status}
+                              </Badge>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem
+                              onClick={() => handleQuickStatusUpdate(repair.id, "Assessment")}
+                            >
+                              Assessment
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleQuickStatusUpdate(repair.id, "Parts Ordered")}
+                            >
+                              Parts Ordered
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleQuickStatusUpdate(repair.id, "In Progress")}
+                            >
+                              In Progress
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleQuickStatusUpdate(repair.id, "Completed")}
+                            >
+                              Completed
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={getPriorityColor(repair.priority)}
+                        >
+                          {repair.priority}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-semibold text-primary">
+                              {repair.technician.split(' ').map(n => n[0]).join('')}
+                            </span>
+                          </div>
+                          <span className="text-sm">{repair.technician.split(' ')[0]}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {repair.estimatedCompletion}
+                      </TableCell>
+                      <TableCell className="font-semibold text-primary">
+                        {repair.cost}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href="/dashboard/repair-details">
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Repair
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Package className="mr-2 h-4 w-4" />
+                              Manage Parts
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Download className="mr-2 h-4 w-4" />
+                              Export Report
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="bg-gradient-card border-glass shadow-card">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button variant="outline" className="justify-start">
+                <Clock className="h-4 w-4 mr-2" />
+                Mark as In Progress (5)
+              </Button>
+              <Button variant="outline" className="justify-start">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Mark as Completed (3)
+              </Button>
+              <Button variant="outline" className="justify-start">
+                <Download className="h-4 w-4 mr-2" />
+                Bulk Export (12)
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
-}
+};
+
+export default StatusTracking;
