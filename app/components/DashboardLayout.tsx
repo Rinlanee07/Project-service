@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { ReactNode, useState } from "react"; // ✅ import ReactNode
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 
 interface DashboardLayoutProps {
-  children: ReactNode;
+  children: ReactNode; // type ของ children
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
@@ -14,13 +14,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
-        <main className="flex-1 p-6">
-          {children}
-        </main>
+        <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );
 };
 
 export default DashboardLayout;
-
