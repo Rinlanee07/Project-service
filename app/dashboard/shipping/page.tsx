@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -34,80 +34,80 @@ import {
   Calendar,
   User,
   Phone,
+  Printer,
 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock data
+// Mock data - ปรับเป็นข้อมูลส่งคืนปริ้นเตอร์
 const shippingOrders = [
   {
     id: "SH001",
-    repairId: "RX001",
-    customer: "John Smith",
-    phone: "+66 81-234-5678",
-    address: "123/45 Sukhumvit Road, Bangkok 10110",
-    device: "iPhone 14 Pro",
-    status: "In Transit",
+    repairId: "PR001",
+    customer: "สมชาย ใจดี",
+    phone: "+66 89-123-4567",
+    address: "456 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110",
+    printer: "CANON PIXMA G1020",
+    status: "กำลังจัดส่ง",
     trackingNumber: "TH1234567890",
-    courier: "Thailand Post",
-    shippedDate: "2024-01-16",
-    estimatedDelivery: "2024-01-18",
+    courier: "ไปรษณีย์ไทย",
+    shippedDate: "2024-06-11",
+    estimatedDelivery: "2024-06-13",
     cost: "฿50",
   },
   {
     id: "SH002",
-    repairId: "RX003",
-    customer: "Mike Chen",
-    phone: "+66 82-345-6789",
-    address: "456/78 Rama IV Road, Bangkok 10500",
-    device: "MacBook Air M2",
-    status: "Delivered",
+    repairId: "PR003",
+    customer: "ธนพล รักดี",
+    phone: "+66 88-234-5678",
+    address: "123 ถนนรัชดาภิเษก แขวงห้วยขวาง เขตห้วยขวาง กรุงเทพฯ 10310",
+    printer: "HP Smart Tank 615",
+    status: "ส่งถึงแล้ว",
     trackingNumber: "TH0987654321",
     courier: "Kerry Express",
-    shippedDate: "2024-01-15",
-    estimatedDelivery: "2024-01-16",
+    shippedDate: "2024-06-10",
+    estimatedDelivery: "2024-06-11",
     cost: "฿80",
   },
   {
     id: "SH003",
-    repairId: "RX005",
-    customer: "Tom Wilson",
-    phone: "+66 83-456-7890",
-    address: "789/12 Silom Road, Bangkok 10320",
-    device: "Google Pixel 7",
-    status: "Ready to Ship",
+    repairId: "PR005",
+    customer: "อนุสรณ์ ทองดี",
+    phone: "+66 87-345-6789",
+    address: "789 ถนนพหลโยธิน แขวงเสนานิคม เขตจตุจักร กรุงเทพฯ 10900",
+    printer: "CANON TS9570",
+    status: "พร้อมจัดส่ง",
     trackingNumber: "",
     courier: "Flash Express",
     shippedDate: "",
-    estimatedDelivery: "2024-01-19",
+    estimatedDelivery: "2024-06-14",
     cost: "฿45",
   },
 ];
 
 const timeline = [
   { 
-    date: "2024-01-16 10:00", 
-    status: "Package Shipped", 
-    location: "Bangkok Distribution Center",
-    description: "Package picked up from repair center" 
+    date: "2024-06-11 10:00", 
+    status: "จัดส่งแล้ว", 
+    location: "ศูนย์กระจายสินค้า กรุงเทพฯ",
+    description: "รับเครื่องปริ้นเตอร์จากศูนย์ซ่อม" 
   },
   { 
-    date: "2024-01-16 14:30", 
-    status: "In Transit", 
-    location: "Bangkok Sorting Facility",
-    description: "Package processed and sorted" 
+    date: "2024-06-11 14:30", 
+    status: "อยู่ระหว่างจัดส่ง", 
+    location: "ศูนย์คัดแยก กรุงเทพฯ",
+    description: "เครื่องปริ้นเตอร์ถูกคัดแยกและเตรียมจัดส่ง" 
   },
   { 
-    date: "2024-01-17 09:15", 
-    status: "Out for Delivery", 
-    location: "Local Delivery Hub",
-    description: "Package out for delivery to customer" 
+    date: "2024-06-12 09:15", 
+    status: "อยู่ระหว่างนำส่ง", 
+    location: "ศูนย์กระจายสินค้าท้องถิ่น",
+    description: "กำลังนำส่งเครื่องปริ้นเตอร์ให้ลูกค้า" 
   },
   { 
-    date: "2024-01-17 16:45", 
-    status: "Delivered", 
-    location: "Customer Address",
-    description: "Package successfully delivered to customer" 
+    date: "2024-06-12 16:45", 
+    status: "ส่งถึงแล้ว", 
+    location: "ที่อยู่ลูกค้า",
+    description: "ส่งเครื่องปริ้นเตอร์ถึงลูกค้าเรียบร้อยแล้ว" 
   },
 ];
 
@@ -118,24 +118,22 @@ const Shipping = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Delivered":
-        return "bg-green-100 text-green-800";
-      case "In Transit":
-        return "bg-blue-100 text-blue-800";
-      case "Ready to Ship":
-        return "bg-yellow-100 text-yellow-800";
-      case "Shipped":
-        return "bg-purple-100 text-purple-800";
+      case "ส่งถึงแล้ว":
+        return "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-sm";
+      case "กำลังจัดส่ง":
+        return "bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0 shadow-sm";
+      case "พร้อมจัดส่ง":
+        return "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-sm";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const handleCreateShipment = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
-      title: "Shipment Created",
-      description: "New shipping order has been created successfully.",
+      title: "สร้างรายการจัดส่งสำเร็จ",
+      description: "รายการจัดส่งเครื่องปริ้นเตอร์ใหม่ถูกสร้างเรียบร้อยแล้ว",
     });
   };
 
@@ -146,103 +144,103 @@ const Shipping = () => {
   );
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50 to-teal-50 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Page Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Shipping Management</h1>
-            <p className="text-muted-foreground">
-              Manage shipping and delivery of repaired devices
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl shadow-lg">
+                <Truck className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-600 via-cyan-500 to-teal-700 bg-clip-text text-transparent">
+                  Printer Shipping Management
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  จัดการการจัดส่งเครื่องปริ้นเตอร์ที่ซ่อมเสร็จแล้ว
+                </p>
+              </div>
+            </div>
           </div>
-          <Button variant="hero">
+          <Button 
+            className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-shadow"
+          >
             <Plus className="h-4 w-4 mr-2" />
-            Create Shipment
+            สร้างรายการจัดส่ง
           </Button>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-card border-glass shadow-card">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Ready to Ship</p>
-                  <p className="text-2xl font-bold">5</p>
+          {[
+            { title: "พร้อมจัดส่ง", value: "5", icon: Package, color: "from-amber-500 to-orange-500", iconBg: "bg-amber-100" },
+            { title: "กำลังจัดส่ง", value: "8", icon: Truck, color: "from-teal-500 to-cyan-500", iconBg: "bg-teal-100" },
+            { title: "ส่งวันนี้", value: "12", icon: CheckCircle, color: "from-emerald-500 to-teal-500", iconBg: "bg-emerald-100" },
+            { title: "เดือนนี้", value: "156", icon: Calendar, color: "from-cyan-500 to-blue-500", iconBg: "bg-cyan-100" },
+          ].map((stat, i) => (
+            <Card 
+              key={i} 
+              className="bg-white/80 backdrop-blur-lg border border-teal-100 shadow-lg hover:shadow-xl transition-shadow"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{stat.title}</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                      {stat.value}
+                    </p>
+                  </div>
+                  <div className={`p-2 rounded-lg ${stat.iconBg}`}>
+                    <stat.icon className={`h-6 w-6 text-${stat.color.split('-')[1] || 'teal'}-600`} />
+                  </div>
                 </div>
-                <Package className="h-8 w-8 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-card border-glass shadow-card">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">In Transit</p>
-                  <p className="text-2xl font-bold">8</p>
-                </div>
-                <Truck className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-card border-glass shadow-card">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Delivered Today</p>
-                  <p className="text-2xl font-bold">12</p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-card border-glass shadow-card">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">This Month</p>
-                  <p className="text-2xl font-bold">156</p>
-                </div>
-                <Calendar className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="orders" className="flex items-center gap-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm border border-teal-100 p-1 rounded-lg">
+            <TabsTrigger 
+              value="orders" 
+              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white rounded-md transition-all"
+            >
               <Package className="h-4 w-4" />
-              Shipping Orders
+              รายการจัดส่ง
             </TabsTrigger>
-            <TabsTrigger value="create" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="create" 
+              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white rounded-md transition-all"
+            >
               <Plus className="h-4 w-4" />
-              Create Shipment
+              สร้างรายการ
             </TabsTrigger>
-            <TabsTrigger value="tracking" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="tracking" 
+              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white rounded-md transition-all"
+            >
               <MapPin className="h-4 w-4" />
-              Track Package
+              ติดตามพัสดุ
             </TabsTrigger>
           </TabsList>
 
           {/* Shipping Orders Tab */}
-          <TabsContent value="orders" className="space-y-4">
-            <Card className="bg-gradient-card border-glass shadow-card">
-              <CardHeader>
+          <TabsContent value="orders" className="space-y-6">
+            <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
+              <CardHeader className="border-b border-teal-100">
                 <div className="flex items-center justify-between">
-                  <CardTitle>Shipping Orders</CardTitle>
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                    รายการจัดส่งเครื่องปริ้นเตอร์
+                  </CardTitle>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-teal-500" />
                     <Input
-                      placeholder="Search orders..."
+                      placeholder="ค้นหาเลขที่จัดส่งหรือชื่อลูกค้า..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-64"
+                      className="pl-10 w-full md:w-64 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                     />
                   </div>
                 </div>
@@ -250,24 +248,26 @@ const Shipping = () => {
               <CardContent>
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Shipment ID</TableHead>
-                      <TableHead>Repair ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Device</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Courier</TableHead>
-                      <TableHead>Tracking</TableHead>
-                      <TableHead>Est. Delivery</TableHead>
-                      <TableHead>Cost</TableHead>
+                    <TableRow className="bg-teal-50/50">
+                      <TableHead className="font-semibold text-teal-700">เลขที่จัดส่ง</TableHead>
+                      <TableHead className="font-semibold text-teal-700">เลขที่ซ่อม</TableHead>
+                      <TableHead className="font-semibold text-teal-700">ลูกค้า</TableHead>
+                      <TableHead className="font-semibold text-teal-700">ปริ้นเตอร์</TableHead>
+                      <TableHead className="font-semibold text-teal-700">สถานะ</TableHead>
+                      <TableHead className="font-semibold text-teal-700">ผู้ให้บริการ</TableHead>
+                      <TableHead className="font-semibold text-teal-700">เลขติดตาม</TableHead>
+                      <TableHead className="font-semibold text-teal-700">วันที่ส่งถึง</TableHead>
+                      <TableHead className="font-semibold text-teal-700">ค่าจัดส่ง</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.id}</TableCell>
+                      <TableRow key={order.id} className="hover:bg-teal-50/30 transition-colors">
+                        <TableCell className="font-medium text-teal-700">{order.id}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{order.repairId}</Badge>
+                          <Badge variant="secondary" className="bg-teal-100 text-teal-800 border-teal-200">
+                            {order.repairId}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <div>
@@ -275,7 +275,7 @@ const Shipping = () => {
                             <p className="text-sm text-muted-foreground">{order.phone}</p>
                           </div>
                         </TableCell>
-                        <TableCell>{order.device}</TableCell>
+                        <TableCell className="font-medium">{order.printer}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(order.status)}>
                             {order.status}
@@ -284,13 +284,13 @@ const Shipping = () => {
                         <TableCell>{order.courier}</TableCell>
                         <TableCell>
                           {order.trackingNumber ? (
-                            <span className="font-mono text-sm">{order.trackingNumber}</span>
+                            <span className="font-mono text-sm text-teal-700">{order.trackingNumber}</span>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
                         <TableCell>{order.estimatedDelivery}</TableCell>
-                        <TableCell className="font-semibold text-primary">
+                        <TableCell className="font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
                           {order.cost}
                         </TableCell>
                       </TableRow>
@@ -302,35 +302,38 @@ const Shipping = () => {
           </TabsContent>
 
           {/* Create Shipment Tab */}
-          <TabsContent value="create" className="space-y-4">
-            <Card className="bg-gradient-card border-glass shadow-card max-w-2xl">
+          <TabsContent value="create" className="space-y-6">
+            <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl max-w-3xl mx-auto">
               <CardHeader>
-                <CardTitle>Create New Shipment</CardTitle>
+                <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  สร้างรายการจัดส่งใหม่
+                </CardTitle>
+                <CardDescription>กรอกข้อมูลเพื่อจัดส่งเครื่องปริ้นเตอร์ที่ซ่อมเสร็จแล้ว</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleCreateShipment} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={handleCreateShipment} className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <Label htmlFor="repair-id">Repair ID *</Label>
+                      <Label htmlFor="repair-id" className="text-teal-700 font-medium">เลขที่ซ่อม *</Label>
                       <Select required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select repair" />
+                        <SelectTrigger className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200">
+                          <SelectValue placeholder="เลือกงานซ่อมที่เสร็จแล้ว" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="RX004">RX004 - iPad Pro (Ready)</SelectItem>
-                          <SelectItem value="RX006">RX006 - iPhone 13 (Ready)</SelectItem>
-                          <SelectItem value="RX007">RX007 - Samsung S22 (Ready)</SelectItem>
+                          <SelectItem value="PR002">PR002 - EPSON L1216 (พร้อมจัดส่ง)</SelectItem>
+                          <SelectItem value="PR004">PR004 - Brother HL-T4000DW (พร้อมจัดส่ง)</SelectItem>
+                          <SelectItem value="PR006">PR006 - CANON TS307 (พร้อมจัดส่ง)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="courier">Courier Service *</Label>
+                      <Label htmlFor="courier" className="text-teal-700 font-medium">ผู้ให้บริการ *</Label>
                       <Select required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select courier" />
+                        <SelectTrigger className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200">
+                          <SelectValue placeholder="เลือกผู้ให้บริการ" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="thailand-post">Thailand Post</SelectItem>
+                          <SelectItem value="thailand-post">ไปรษณีย์ไทย</SelectItem>
                           <SelectItem value="kerry">Kerry Express</SelectItem>
                           <SelectItem value="flash">Flash Express</SelectItem>
                           <SelectItem value="dhl">DHL</SelectItem>
@@ -340,66 +343,93 @@ const Shipping = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="customer-name">Customer Name *</Label>
-                    <Input id="customer-name" required />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number *</Label>
-                      <Input id="phone" type="tel" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" type="email" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Shipping Address *</Label>
-                    <Textarea 
-                      id="address" 
-                      placeholder="Enter complete shipping address..." 
-                      rows={3}
+                    <Label htmlFor="customer-name" className="text-teal-700 font-medium">ชื่อลูกค้า *</Label>
+                    <Input 
+                      id="customer-name" 
+                      className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                       required 
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <Label htmlFor="shipping-cost">Shipping Cost (฿)</Label>
-                      <Input id="shipping-cost" type="number" placeholder="0.00" />
+                      <Label htmlFor="phone" className="text-teal-700 font-medium">เบอร์โทรศัพท์ *</Label>
+                      <Input 
+                        id="phone" 
+                        type="tel" 
+                        className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                        required 
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="priority">Priority</Label>
+                      <Label htmlFor="email" className="text-teal-700 font-medium">อีเมล</Label>
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="address" className="text-teal-700 font-medium">ที่อยู่จัดส่ง *</Label>
+                    <Textarea 
+                      id="address" 
+                      placeholder="กรอกที่อยู่จัดส่งแบบเต็ม..."
+                      rows={3}
+                      className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                      required 
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="shipping-cost" className="text-teal-700 font-medium">ค่าจัดส่ง (฿)</Label>
+                      <Input 
+                        id="shipping-cost" 
+                        type="number" 
+                        placeholder="0.00"
+                        className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="priority" className="text-teal-700 font-medium">ระดับความเร่งด่วน</Label>
                       <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select priority" />
+                        <SelectTrigger className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200">
+                          <SelectValue placeholder="เลือกระดับความเร่งด่วน" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="standard">Standard</SelectItem>
-                          <SelectItem value="express">Express</SelectItem>
-                          <SelectItem value="overnight">Overnight</SelectItem>
+                          <SelectItem value="standard">มาตรฐาน</SelectItem>
+                          <SelectItem value="express">ด่วนพิเศษ</SelectItem>
+                          <SelectItem value="overnight">ด่วนที่สุด</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Special Instructions</Label>
+                    <Label htmlFor="notes" className="text-teal-700 font-medium">คำแนะนำพิเศษ</Label>
                     <Textarea 
                       id="notes" 
-                      placeholder="Any special delivery instructions..." 
+                      placeholder="ระบุคำแนะนำเพิ่มเติมสำหรับการจัดส่ง..."
                       rows={2}
+                      className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                     />
                   </div>
 
-                  <div className="flex justify-end gap-4">
-                    <Button type="button" variant="outline">
-                      Save as Draft
+                  <div className="flex justify-end gap-4 pt-2">
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      className="border-teal-300 text-teal-700 hover:bg-teal-50"
+                    >
+                      บันทึกแบบร่าง
                     </Button>
-                    <Button type="submit" variant="hero">
-                      Create Shipment
+                    <Button 
+                      type="submit"
+                      className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-shadow"
+                    >
+                      สร้างรายการจัดส่ง
                     </Button>
                   </div>
                 </form>
@@ -408,73 +438,86 @@ const Shipping = () => {
           </TabsContent>
 
           {/* Package Tracking Tab */}
-          <TabsContent value="tracking" className="space-y-4">
+          <TabsContent value="tracking" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-gradient-card border-glass shadow-card">
+              <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
                 <CardHeader>
-                  <CardTitle>Track Package</CardTitle>
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                    ติดตามพัสดุ
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="tracking-number">Tracking Number</Label>
+                    <Label htmlFor="tracking-number" className="text-teal-700 font-medium">เลขติดตามพัสดุ</Label>
                     <div className="flex gap-2">
                       <Input 
                         id="tracking-number" 
-                        placeholder="Enter tracking number"
+                        placeholder="กรอกเลขติดตามพัสดุ"
                         defaultValue="TH1234567890"
+                        className="border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                       />
-                      <Button>Track</Button>
+                      <Button className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700 shadow-md">
+                        ติดตาม
+                      </Button>
                     </div>
                   </div>
 
-                  <div className="border-t pt-4">
+                  <div className="border-t border-teal-100 pt-4">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Package className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-gradient-to-r from-teal-100 to-cyan-100 rounded-lg shadow-sm">
+                        <Printer className="h-5 w-5 text-teal-600" />
                       </div>
                       <div>
-                        <p className="font-semibold">iPhone 14 Pro</p>
-                        <p className="text-sm text-muted-foreground">Shipment ID: SH001</p>
+                        <p className="font-semibold text-teal-700">CANON PIXMA G1020</p>
+                        <p className="text-sm text-muted-foreground">เลขที่จัดส่ง: SH001</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">John Smith</span>
-                    </div>
-                    <div className="flex items-center gap-3 mt-1">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">+66 81-234-5678</span>
-                    </div>
-                    <div className="flex items-start gap-3 mt-1">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <span className="text-sm">123/45 Sukhumvit Road, Bangkok 10110</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <User className="h-4 w-4 text-teal-600" />
+                        <span className="text-sm font-medium">สมชาย ใจดี</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-4 w-4 text-teal-600" />
+                        <span className="text-sm">+66 89-123-4567</span>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-4 w-4 text-teal-600 mt-0.5" />
+                        <span className="text-sm">456 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-card border-glass shadow-card">
+              <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
                 <CardHeader>
-                  <CardTitle>Delivery Timeline</CardTitle>
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                    ประวัติการจัดส่ง
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {timeline.map((event, index) => (
-                      <div key={index} className="flex gap-3">
-                        <div className="flex flex-col items-center">
+                      <div key={index} className="flex gap-4">
+                        <div className="flex flex-col items-center mt-1">
                           <div className={`w-3 h-3 rounded-full ${
-                            index === timeline.length - 1 ? 'bg-green-500' : 'bg-primary'
+                            index === timeline.length - 1 
+                              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-sm' 
+                              : 'bg-gradient-to-r from-teal-500 to-cyan-500 shadow-sm'
                           }`} />
                           {index < timeline.length - 1 && (
-                            <div className="w-0.5 h-8 bg-border mt-2" />
+                            <div className="w-0.5 h-10 bg-teal-200 mt-2" />
                           )}
                         </div>
-                        <div className="flex-1 pb-4">
+                        <div className="flex-1 pb-2">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold">{event.status}</span>
+                            <span className="font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                              {event.status}
+                            </span>
                             {index === timeline.length - 1 && (
-                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <CheckCircle className="h-4 w-4 text-emerald-600" />
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground mb-1">
@@ -483,7 +526,7 @@ const Shipping = () => {
                           <p className="text-sm text-muted-foreground">
                             {event.description}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-xs text-teal-600 mt-1">
                             {event.date}
                           </p>
                         </div>
@@ -496,7 +539,7 @@ const Shipping = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
