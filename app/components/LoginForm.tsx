@@ -1,10 +1,15 @@
 "use client";
+
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function LoginForm() {
+export default function LoginForm({
+  onSwitchToRegister,
+}: {
+  onSwitchToRegister?: () => void;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,13 +26,13 @@ export default function LoginForm() {
       });
 
       if (result?.error) {
-        alert(result.error);
+        alert("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
       } else {
         router.push("/dashboard");
       }
     } catch (error) {
-      console.log(error);
-      alert("เกิดข้อผิดพลาด");
+      console.error(error);
+      alert("เกิดข้อผิดพลาด กรุณาลองใหม่");
     } finally {
       setLoading(false);
     }
@@ -62,7 +67,13 @@ export default function LoginForm() {
         </Button>
       </form>
       <p className="text-sm text-gray-500 mt-3 text-center">
-        ยังไม่มีบัญชี? <span className="text-blue-500 cursor-pointer">สมัครสมาชิก</span>
+        ยังไม่มีบัญชี?{" "}
+        <span
+          className="text-blue-500 cursor-pointer font-medium hover:underline"
+          onClick={onSwitchToRegister}
+        >
+          สมัครสมาชิก
+        </span>
       </p>
     </div>
   );

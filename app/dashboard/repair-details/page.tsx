@@ -134,7 +134,7 @@ const RepairDetails = () => {
               <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
                 <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>
-                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                    <CardTitle className="text-xl font-bold text-blue-900">
                       อะไหล่และวัสดุ
                     </CardTitle>
                     <CardDescription>รายการอะไหล่ที่ใช้ในการซ่อม</CardDescription>
@@ -174,7 +174,7 @@ const RepairDetails = () => {
                       <span>รวม</span>
                       <span>฿1,200</span>
                     </div>
-                    <div className="flex justify-between mt-2 text-lg font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                    <div className="flex justify-between mt-2 text-lg font-bold text-blue-900">
                       <span>ยอดรวมทั้งหมด</span>
                       <span>฿1,200</span>
                     </div>
@@ -184,7 +184,7 @@ const RepairDetails = () => {
 
               <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  <CardTitle className="text-xl font-bold text-blue-900">
                     สรุปรายการค่าใช้จ่าย
                   </CardTitle>
                   <CardDescription>รายละเอียดราคาการซ่อม</CardDescription>
@@ -203,7 +203,7 @@ const RepairDetails = () => {
                       <span className="text-muted-foreground">ภาษี (7%)</span>
                       <span className="text-muted-foreground">฿84</span>
                     </div>
-                    <div className="flex justify-between pt-3 border-t border-teal-100 font-bold text-lg bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                    <div className="flex justify-between pt-3 border-t border-teal-100 font-bold text-lg text-blue-900">
                       <span>ยอดรวมสุทธิ</span>
                       <span>฿1,284</span>
                     </div>
@@ -224,7 +224,7 @@ const RepairDetails = () => {
             <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div>
-                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  <CardTitle className="text-xl font-bold text-blue-900">
                     รูปภาพการซ่อม
                   </CardTitle>
                   <CardDescription>เอกสารประกอบและภาพความคืบหน้า</CardDescription>
@@ -260,7 +260,7 @@ const RepairDetails = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  <CardTitle className="text-xl font-bold text-blue-900">
                     อัปเดตสถานะ
                   </CardTitle>
                   <CardDescription>เปลี่ยนสถานะการซ่อมและเพิ่มหมายเหตุ</CardDescription>
@@ -302,7 +302,7 @@ const RepairDetails = () => {
 
               <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  <CardTitle className="text-xl font-bold text-blue-900">
                     ประวัติสถานะ
                   </CardTitle>
                   <CardDescription>ไทม์ไลน์ความคืบหน้าการซ่อม</CardDescription>
@@ -314,7 +314,7 @@ const RepairDetails = () => {
                         <div className="absolute w-3 h-3 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 -left-1.5 top-1 shadow-lg"></div>
                         <div className="ml-4">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                            <span className="font-bold text-blue-900">
                               {entry.status}
                             </span>
                             <Badge variant="outline" className="text-xs border-teal-300 text-teal-600">
@@ -342,7 +342,7 @@ const RepairDetails = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  <CardTitle className="text-xl font-bold text-blue-900">
                     ข้อมูลลูกค้า
                   </CardTitle>
                   <CardDescription>รายละเอียดการติดต่อ</CardDescription>
@@ -370,7 +370,7 @@ const RepairDetails = () => {
 
               <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  <CardTitle className="text-xl font-bold text-blue-900">
                     แจ้งลูกค้า
                   </CardTitle>
                   <CardDescription>ส่งอัปเดตผ่าน SMS หรืออีเมล</CardDescription>
@@ -484,7 +484,7 @@ const RepairDetails = () => {
                     <item.icon className="h-4 w-4 text-teal-600" />
                     {item.title}
                   </p>
-                  <p className="text-lg font-bold mt-1 bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  <p className="text-lg font-bold mt-1 text-blue-900">
                     {item.value}
                   </p>
                   {item.subtitle && (

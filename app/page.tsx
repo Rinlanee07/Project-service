@@ -1,58 +1,27 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
-  Wrench, Clock, CheckCircle, Users, Shield, Smartphone,
-  ArrowRight, Star, Menu, X, FileText, MessageCircle, Zap, Award, Target, Sparkles
+  Wrench, Menu, X, Rocket, ArrowRight
 } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
-// Import Form แทนหน้า page เต็ม
-const LoginForm = dynamic(() => import("@/components/LoginForm"), { ssr: false });
-const RegisterForm = dynamic(() => import("@/components/RegisterForm"), { ssr: false });
-
-const steps = [
-  { icon: FileText, title: "Create Repair", description: "Register new repair request with detailed information" },
-  { icon: Target, title: "Assign & Track", description: "Assign to technicians and track progress in real-time" },
-  { icon: Wrench, title: "Update Status", description: "Technicians update repair status and communicate with customers" },
-  { icon: Award, title: "Complete & Feedback", description: "Mark as complete and collect customer feedback" }
-];
-
-const testimonials = [
-  { name: "Sarah Chen", role: "Shop Owner", company: "TechFix Pro", content: "RepairPro transformed our business. Customer satisfaction increased by 40% since we started using it.", avatar: "SC" },
-  { name: "Mike Rodriguez", role: "Lead Technician", company: "Mobile Repair Hub", content: "The real-time tracking feature is amazing. Customers love knowing exactly where their repair stands.", avatar: "MR" },
-  { name: "Jenny Kim", role: "Operations Manager", company: "QuickFix Solutions", content: "Our efficiency improved dramatically. We can now handle 3x more repairs with the same team size.", avatar: "JK" }
-];
+// Import Forms จริงที่มี logic
+import LoginForm from "@/components/LoginForm";
+import RegisterForm from "@/components/RegisterForm";
 
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [modalType, setModalType] = useState<"login" | "register" | null>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length), 4000);
-    return () => clearInterval(interval);
-  }, []);
+  const [isLoginView, setIsLoginView] = useState(true); // true = Login, false = Register
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-950 text-white relative overflow-hidden">
 
-      {/* Background Blobs */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-gradient-to-r from-cyan-400/5 to-blue-400/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
-
-      {/* Floating Icons */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <Wrench className="absolute top-1/4 left-1/4 w-8 h-8 text-blue-400/20 animate-bounce delay-300" />
-        <Smartphone className="absolute top-1/3 right-1/4 w-6 h-6 text-purple-400/20 animate-bounce delay-700" />
-        <Shield className="absolute bottom-1/3 left-1/3 w-7 h-7 text-green-400/20 animate-bounce delay-1000" />
-        <Star className="absolute bottom-1/4 right-1/3 w-5 h-5 text-yellow-400/20 animate-bounce delay-1500" />
+      {/* Background World Map */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-blue-900/80 to-indigo-950/90"></div>
       </div>
 
       {/* Header */}
@@ -63,12 +32,13 @@ export default function HomePage() {
               <Wrench className="h-8 w-8 text-white transform group-hover:rotate-12 transition-transform duration-300" />
               <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-yellow-400 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
-            <h1 className="text-2xl font-bold text-white">PHOENIX POS</h1>
+            <h1 className="text-2xl font-bold text-white">ORBIT</h1>
           </div>
 
           <Button
-            className="bg-yellow-500 text-white hover:bg-yellow-600 border-none"
-            onClick={() => setModalType("login")}
+            variant="outline"
+            className="border-white text-white hover:bg-white hover:text-blue-900"
+            onClick={() => setIsLoginView(true)}
           >
             Login
           </Button>
@@ -79,40 +49,52 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative py-20 px-6 text-center">
-        <h2 className="text-5xl md:text-7xl font-bold mb-6">
-          Track Your Repairs,<br/>
-          <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient-x">
-            Transform Your Business
-          </span>
-        </h2>
-        <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-          Professional repair management system that streamlines operations, delights customers, and grows your business.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600" onClick={() => setModalType("register")}>Start Free Trial</Button>
-          <Button size="lg" variant="outline" onClick={() => setModalType("login")}>Sign In</Button>
+      {/* Main Content - Orbit Style */}
+      <main className="container mx-auto px-6 py-12 flex flex-col lg:flex-row items-center gap-12 relative z-10">
+
+        {/* Left Side - Text */}
+        <div className="lg:w-1/2 space-y-8">
+          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">ORBIT</span>
+          </h1>
+          <p className="text-xl text-slate-300 max-w-lg">
+            Welcome to the future of repair management. Track, assign, and complete repairs with ease. Designed for shops that want to scale smarter.
+          </p>
+          <Button
+            variant="outline"
+            className="border-white text-white hover:bg-white hover:text-blue-900"
+            onClick={() => setIsLoginView(false)}
+          >
+            Get Started <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
-      </section>
 
-      {/* Modal Popup แบบ card */}
-      <Dialog open={modalType !== null} onOpenChange={() => setModalType(null)}>
-        <DialogContent className="max-w-md w-full rounded-xl p-6 mx-auto my-12 max-h-[80vh] overflow-y-auto shadow-xl">
-          <DialogHeader>
-            <DialogTitle>{modalType === "login" ? "Sign In" : "Get Started"}</DialogTitle>
-          </DialogHeader>
-          {modalType === "login" ? <LoginForm /> : <RegisterForm />}
-        </DialogContent>
-      </Dialog>
+        {/* Right Side - Login/Register Card */}
+        <div className="lg:w-1/2 flex justify-center">
+          <div className="relative w-full max-w-md">
+            {/* Rocket Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center">
+                <Rocket className="h-10 w-10 text-white" />
+              </div>
+            </div>
 
-      <style jsx global>{`
-        @keyframes gradient-x {
-          0%, 100% { background-size: 200% 200%; background-position: left center; }
-          50% { background-size: 200% 200%; background-position: right center; }
-        }
-        .animate-gradient-x { animation: gradient-x 8s ease infinite; }
-      `}</style>
+            {/* Toggle between Login and Register */}
+            <div className="bg-white text-slate-800 rounded-2xl shadow-2xl p-8 border border-blue-100">
+              {isLoginView ? (
+                <LoginForm 
+                  onSwitchToRegister={() => setIsLoginView(false)} 
+                />
+              ) : (
+                <RegisterForm 
+                  onSwitchToLogin={() => setIsLoginView(true)} 
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+      </main>
     </div>
   );
 }

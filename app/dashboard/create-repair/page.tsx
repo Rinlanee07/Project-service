@@ -61,7 +61,6 @@ const CreateRepair = () => {
         <Card className="bg-white/80 backdrop-blur-xl border border-teal-100 shadow-xl">
           <CardHeader className="bg-gradient-to-r from-teal-50/70 to-cyan-50/70 border-b border-teal-200 pb-6">
             <div className="flex items-center gap-3">
-              {/* Icon with glow */}
               <div className="p-2 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg shadow-lg">
                 <Printer className="h-6 w-6 text-white" />
               </div>
@@ -74,29 +73,29 @@ const CreateRepair = () => {
             <form className="space-y-8" onSubmit={handleSubmit}>
               {/* Printer Information */}
               <section className="space-y-4">
-                <h2 className="text-xl font-semibold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2 border-b border-teal-200 pb-2">
+                <h2 className="text-xl font-semibold text-blue-900 flex items-center gap-2 border-b border-blue-200 pb-2">
                   <Printer className="h-5 w-5" />
                   Printer Information
                   <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Required</Badge>
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="serial" className="text-sm font-semibold text-teal-700">Serial Number *</Label>
+                    <Label htmlFor="serial" className="text-sm font-semibold text-blue-800">Serial Number *</Label>
                     <Input
                       id="serial"
                       placeholder="Enter printer serial number"
-                      className="border-2 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                      className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="model" className="text-sm font-semibold text-teal-700">Printer Model *</Label>
+                    <Label htmlFor="model" className="text-sm font-semibold text-blue-800">Printer Model *</Label>
                     <Select
                       value={printerModel}
                       onValueChange={setPrinterModel}
                       required={!isOtherModel}
                     >
-                      <SelectTrigger className="border-2 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200">
+                      <SelectTrigger className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
                         <SelectValue placeholder="Select printer model" />
                       </SelectTrigger>
                       <SelectContent>
@@ -118,18 +117,18 @@ const CreateRepair = () => {
                         value={customModel}
                         onChange={(e) => setCustomModel(e.target.value)}
                         placeholder="Enter custom printer model"
-                        className="mt-2 border-2 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                        className="mt-2 border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                         required
                       />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="brand" className="text-sm font-semibold text-teal-700">Printer Brand</Label>
+                    <Label htmlFor="brand" className="text-sm font-semibold text-blue-800">Printer Brand</Label>
                     <Select
                       value={printerBrand}
                       onValueChange={setPrinterBrand}
                     >
-                      <SelectTrigger className="border-2 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200">
+                      <SelectTrigger className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
                         <SelectValue placeholder="Select brand" />
                       </SelectTrigger>
                       <SelectContent>
@@ -145,14 +144,14 @@ const CreateRepair = () => {
                         value={customBrand}
                         onChange={(e) => setCustomBrand(e.target.value)}
                         placeholder="Enter custom brand"
-                        className="mt-2 border-2 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                        className="mt-2 border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                       />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="warranty" className="text-sm font-semibold text-teal-700">Warranty Status</Label>
+                    <Label htmlFor="warranty" className="text-sm font-semibold text-blue-800">Warranty Status</Label>
                     <Select>
-                      <SelectTrigger className="border-2 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200">
+                      <SelectTrigger className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
                         <SelectValue placeholder="Select warranty status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -165,130 +164,134 @@ const CreateRepair = () => {
                 </div>
               </section>
 
-              {/* Problem Description */}
-              <section className="space-y-4">
-                <h2 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent flex items-center gap-2 border-b border-amber-200 pb-2">
-                  <FileText className="h-5 w-5" />
-                  Problem Description
-                </h2>
-                <div className="space-y-2">
-                  <Label htmlFor="symptoms" className="text-sm font-semibold text-amber-700">Symptoms *</Label>
-                  <Textarea
-                    id="symptoms"
-                    placeholder="Describe the printer issue in detail (e.g., paper jam, ink error, not printing)..."
-                    rows={4}
-                    className="border-2 border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-                    required
-                  />
-                </div>
-              </section>
-
-              {/* Attachments */}
-              <section className="space-y-4">
-                <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-fuchsia-500 bg-clip-text text-transparent flex items-center gap-2 border-b border-purple-200 pb-2">
-                  <Upload className="h-5 w-5" />
-                  Attachments
-                </h2>
-                <div className="border-2 border-dashed border-purple-300 bg-purple-50/40 rounded-xl p-8 text-center hover:bg-purple-100/60 transition-colors">
-                  <Upload className="mx-auto h-12 w-12 text-purple-500 mb-4" />
-                  <p className="text-slate-700 font-medium mb-2">
-                    Drop files here or click to upload
-                  </p>
-                  <p className="text-sm text-slate-500 mb-4">
-                    Support: JPG, PNG, PDF (Max 5 files, 10MB each)
-                  </p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,.pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <Button variant="outline" asChild className="border-2 border-purple-500 text-purple-700 hover:bg-purple-100">
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      Select Files
-                    </label>
-                  </Button>
-                </div>
-
-                {attachments.length > 0 && (
+              {/* Problem Description & Attachments Side by Side */}
+              <section className="flex flex-col lg:flex-row gap-8">
+                {/* Problem Description - Left */}
+                <div className="flex-1 space-y-4">
+                  <h2 className="text-xl font-semibold text-blue-900 flex items-center gap-2 border-b border-blue-200 pb-2">
+                    <FileText className="h-5 w-5" />
+                    Problem Description
+                  </h2>
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-purple-700">Uploaded Files</Label>
-                    <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-100/70 to-pink-100/70 rounded-lg border border-purple-200 shadow-sm"
-                        >
-                          <span className="text-sm font-medium text-slate-700 truncate">{file.name}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttachment(index)}
-                            className="text-slate-500 hover:text-red-600"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                    <Textarea
+                      id="symptoms"
+                      placeholder="Describe the printer issue in detail (e.g., paper jam, ink error, not printing)..."
+                      className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 min-h-[195px]"
+                      required
+                    />
                   </div>
-                )}
+                </div>
+
+                {/* Attachments - Right */}
+                <div className="flex-1 space-y-4">
+                  <h2 className="text-xl font-semibold text-blue-900 flex items-center gap-2 border-b border-blue-200 pb-2">
+                    <Upload className="h-5 w-5" />
+                    Attachments
+                  </h2>
+                  <div
+                    className="border-2 border-dashed border-blue-300 bg-blue-50/40 rounded-xl p-6 text-center hover:bg-blue-100/60 transition-all duration-300 shadow-lg shadow-green-200/50 flex flex-col items-center justify-center min-h-[150px]"
+                    style={{ boxShadow: '0 0 12px rgba(34, 44, 120, 0.25)' }}
+                  >
+                    <Upload className="mx-auto h-10 w-10 text-blue-500 mb-3" />
+                    <p className="text-slate-700 font-medium text-sm mb-1">
+                      Drop files here or click to upload
+                    </p>
+                    <p className="text-xs text-slate-500 mb-3">
+                      JPG, PNG, PDF • Max 5 files
+                    </p>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,.pdf"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <Button variant="outline" asChild className="border border-blue-500 text-blue-700 hover:bg-green-100 text-xs px-3 py-1.5">
+                      <label htmlFor="file-upload" className="cursor-pointer">
+                        Select Files
+                      </label>
+                    </Button>
+                  </div>
+
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-green-700">Uploaded Files</Label>
+                      <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                        {attachments.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-gradient-to-r from-green-100/70 to-emerald-100/70 rounded-lg border border-green-200 shadow-sm"
+                          >
+                            <span className="text-sm font-medium text-slate-700 truncate">{file.name}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeAttachment(index)}
+                              className="text-slate-500 hover:text-red-600 p-1"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </section>
 
               {/* Customer Information */}
               <section className="space-y-4">
-                <h2 className="text-xl font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent flex items-center gap-2 border-b border-emerald-200 pb-2">
+                <h2 className="text-xl font-semibold text-blue-900 flex items-center gap-2 border-b border-blue-200 pb-2">
                   <User className="h-5 w-5" />
                   Customer Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="customer-name" className="text-sm font-semibold text-emerald-700">Customer Name *</Label>
+                    <Label htmlFor="customer-name" className="text-sm font-semibold text-blue-800">Customer Name *</Label>
                     <Input
                       id="customer-name"
                       placeholder="Enter customer name"
-                      className="border-2 border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                      className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="customer-phone" className="text-sm font-semibold text-emerald-700">Phone Number *</Label>
+                    <Label htmlFor="customer-phone" className="text-sm font-semibold text-blue-800">Phone Number *</Label>
                     <Input
                       id="customer-phone"
                       type="tel"
                       placeholder="Enter phone number"
-                      className="border-2 border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                      className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="customer-email" className="text-sm font-semibold text-emerald-700">Email Address</Label>
+                    <Label htmlFor="customer-email" className="text-sm font-semibold text-blue-800">Email Address</Label>
                     <Input
                       id="customer-email"
                       type="email"
                       placeholder="Enter email address"
-                      className="border-2 border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                      className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="customer-address" className="text-sm font-semibold text-emerald-700">Address</Label>
+                    <Label htmlFor="customer-address" className="text-sm font-semibold text-blue-800">Address</Label>
                     <Input
                       id="customer-address"
                       placeholder="Enter address"
-                      className="border-2 border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                      className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-sm font-semibold text-emerald-700">Additional Notes</Label>
+                  <Label htmlFor="notes" className="text-sm font-semibold text-blue-800">Additional Notes</Label>
                   <Textarea
                     id="notes"
                     placeholder="Any additional information about the printer or location..."
                     rows={3}
-                    className="border-2 border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                    className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
               </section>
