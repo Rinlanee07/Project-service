@@ -1,6 +1,7 @@
+// app/profile/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,37 +44,13 @@ import {
 import DashboardLayout from '@/components/DashboardLayout';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-
-const userData = {
-  id: 'USR001',
-  name: 'John Doe',
-  email: 'john.doe@email.com',
-  phone: '+66 81-234-5678',
-  role: 'Shop Owner',
-  department: 'Management',
-  address: '123/45 Sukhumvit Road, Bangkok 10110',
-  joinDate: '2023-06-15',
-  avatar: '/api/placeholder/100/100',
-  stats: {
-    repairsManaged: 156,
-    totalRevenue: '฿245,680',
-    avgRating: 4.8,
-    activeRepairs: 12,
-  },
-  preferences: {
-    emailNotifications: true,
-    smsNotifications: false,
-    pushNotifications: true,
-    weeklyReports: true,
-    language: 'en',
-    timezone: 'Asia/Bangkok',
-  },
-};
+import { ProfileData } from 'types/profile'; 
 
 const Profile = () => {
+  const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [formData, setFormData] = useState(userData);
+  const [formData, setFormData] = useState<ProfileData | null>(null); //ใช้ type 
   const [passwordData, setPasswordData] = useState({
     current: '',
     new: '',
@@ -85,6 +62,52 @@ const Profile = () => {
     confirm: false,
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/profile');
+        if (res.ok) {
+          const data = await res.json();
+          setFormData(data);
+        } else {
+          toast({
+            title: 'Error',
+            description: 'Failed to load profile.',
+            variant: 'destructive',
+          });
+        }
+      } catch (err) {
+        toast({
+          title: 'Error',
+          description: 'Network error.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">Loading...</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!formData) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen text-red-500">
+          Failed to load profile.
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const handleSaveProfile = () => {
     toast({
@@ -112,7 +135,7 @@ const Profile = () => {
   };
 
   const handlePreferenceChange = (
-    key: keyof typeof userData.preferences,
+    key: keyof ProfileData['preferences'],
     value: boolean
   ) => {
     setFormData({
@@ -147,6 +170,13 @@ const Profile = () => {
     },
   ];
 
+  // ✅ คำนวณ initials อย่างปลอดภัย — ตอนนี้ name เป็น string แน่นอน
+  const initials = formData.name
+    .split(' ')
+    .filter((part: string) => part.length > 0)
+    .map((part: string) => part[0].toUpperCase())
+    .join('');
+
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-white">
@@ -163,10 +193,10 @@ const Profile = () => {
               variant={editMode ? 'default' : 'outline'}
               onClick={editMode ? handleSaveProfile : () => setEditMode(true)}
               className={cn(
-                "w-full sm:w-auto",
+                'w-full sm:w-auto',
                 editMode
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
-                  : "border-blue-500 text-blue-600 hover:bg-blue-50"
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md'
+                  : 'border-blue-500 text-blue-600 hover:bg-blue-50'
               )}
             >
               {editMode ? (
@@ -189,9 +219,9 @@ const Profile = () => {
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <div className="relative flex-shrink-0">
                   <Avatar className="h-24 w-24 ring-2 ring-blue-500/30">
-                    <AvatarImage src={formData.avatar} />
+                    <AvatarImage src={formData.avatar} alt={formData.name} />
                     <AvatarFallback className="text-xl bg-blue-100 text-blue-800">
-                      {formData.name.split(' ').map((n) => n[0]).join('')}
+                      {initials}
                     </AvatarFallback>
                   </Avatar>
                   {editMode && (
@@ -206,7 +236,9 @@ const Profile = () => {
                 </div>
                 <div className="flex-1 min-w-0 w-full">
                   <div className="flex flex-wrap items-center gap-3 mb-3">
-                    <h2 className="text-2xl font-bold truncate text-blue-700">{formData.name}</h2>
+                    <h2 className="text-2xl font-bold truncate text-blue-700">
+                      {formData.name}
+                    </h2>
                     <Badge
                       variant="secondary"
                       className="text-blue-700 bg-blue-100 border-blue-200"
@@ -273,20 +305,26 @@ const Profile = () => {
             <TabsContent value="personal" className="mt-0">
               <Card className="border border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-xl text-blue-600">Personal Information</CardTitle>
+                  <CardTitle className="text-xl text-blue-600">
+                    Personal Information
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-gray-700">First Name</Label>
+                        <Label htmlFor="firstName" className="text-gray-700">
+                          First Name
+                        </Label>
                         <Input
                           id="firstName"
-                          value={formData.name.split(' ')[0]}
+                          value={formData.name.split(' ')[0] || ''}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              name: `${e.target.value} ${formData.name.split(' ')[1] || ''}`,
+                              name: `${e.target.value} ${
+                                formData.name.split(' ')[1] || ''
+                              }`,
                             })
                           }
                           disabled={!editMode}
@@ -294,18 +332,24 @@ const Profile = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-gray-700">Email Address</Label>
+                        <Label htmlFor="email" className="text-gray-700">
+                          Email Address
+                        </Label>
                         <Input
                           id="email"
                           type="email"
                           value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({ ...formData, email: e.target.value })
+                          }
                           disabled={!editMode}
                           className="bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-blue-500"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="role" className="text-gray-700">Role</Label>
+                        <Label htmlFor="role" className="text-gray-700">
+                          Role
+                        </Label>
                         <Select value={formData.role} disabled>
                           <SelectTrigger className="bg-white border-gray-300 text-gray-800">
                             <SelectValue />
@@ -322,14 +366,18 @@ const Profile = () => {
 
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-gray-700">Last Name</Label>
+                        <Label htmlFor="lastName" className="text-gray-700">
+                          Last Name
+                        </Label>
                         <Input
                           id="lastName"
                           value={formData.name.split(' ')[1] || ''}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              name: `${formData.name.split(' ')[0]} ${e.target.value}`,
+                              name: `${
+                                formData.name.split(' ')[0]
+                              } ${e.target.value}`,
                             })
                           }
                           disabled={!editMode}
@@ -337,21 +385,32 @@ const Profile = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-gray-700">Phone Number</Label>
+                        <Label htmlFor="phone" className="text-gray-700">
+                          Phone Number
+                        </Label>
                         <Input
                           id="phone"
                           value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: e.target.value })
+                          }
                           disabled={!editMode}
                           className="bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-blue-500"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="department" className="text-gray-700">Department</Label>
+                        <Label htmlFor="department" className="text-gray-700">
+                          Department
+                        </Label>
                         <Input
                           id="department"
                           value={formData.department}
-                          onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              department: e.target.value,
+                            })
+                          }
                           disabled={!editMode}
                           className="bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-blue-500"
                         />
@@ -359,11 +418,15 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="mt-6 space-y-2">
-                    <Label htmlFor="address" className="text-gray-700">Address</Label>
+                    <Label htmlFor="address" className="text-gray-700">
+                      Address
+                    </Label>
                     <Textarea
                       id="address"
                       value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, address: e.target.value })
+                      }
                       disabled={!editMode}
                       rows={3}
                       className="bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-blue-500"
@@ -377,7 +440,9 @@ const Profile = () => {
             <TabsContent value="security" className="mt-0 space-y-4">
               <Card className="border border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-xl text-blue-600">Security Settings</CardTitle>
+                  <CardTitle className="text-xl text-blue-600">
+                    Security Settings
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -392,8 +457,8 @@ const Profile = () => {
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => setShowPasswordDialog(true)}
                       className="border-blue-500 text-blue-600 hover:bg-blue-100"
                     >
@@ -407,13 +472,15 @@ const Profile = () => {
                         <Shield className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-800">Two-Factor Authentication</p>
+                        <p className="font-semibold text-gray-800">
+                          Two-Factor Authentication
+                        </p>
                         <p className="text-sm text-gray-600">
                           Add an extra layer of security
                         </p>
                       </div>
                     </div>
-                    <Button 
+                    <Button
                       variant="outline"
                       className="border-blue-500 text-blue-600 hover:bg-blue-100"
                     >
@@ -422,7 +489,9 @@ const Profile = () => {
                   </div>
 
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold mb-3 text-gray-800">Recent Login Activity</h4>
+                    <h4 className="font-semibold mb-3 text-gray-800">
+                      Recent Login Activity
+                    </h4>
                     <div className="space-y-3 text-sm">
                       {[
                         {
@@ -449,11 +518,14 @@ const Profile = () => {
                           className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0"
                         >
                           <div className="text-gray-700">
-                            <span className="font-medium">{session.device}</span> – {session.location}
+                            <span className="font-medium">{session.device}</span> –{' '}
+                            {session.location}
                           </div>
                           <span
                             className={`text-xs ${
-                              session.active ? 'text-green-600 font-medium' : 'text-gray-500'
+                              session.active
+                                ? 'text-green-600 font-medium'
+                                : 'text-gray-500'
                             }`}
                           >
                             {session.time}
@@ -470,7 +542,9 @@ const Profile = () => {
             <TabsContent value="notifications" className="mt-0">
               <Card className="border border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-xl text-blue-600">Notification Preferences</CardTitle>
+                  <CardTitle className="text-xl text-blue-600">
+                    Notification Preferences
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-5">
@@ -485,7 +559,9 @@ const Profile = () => {
                         </div>
                         <Switch
                           checked={formData.preferences[item.key]}
-                          onCheckedChange={(checked) => handlePreferenceChange(item.key, checked)}
+                          onCheckedChange={(checked) =>
+                            handlePreferenceChange(item.key, checked)
+                          }
                         />
                       </div>
                     ))}
@@ -498,12 +574,16 @@ const Profile = () => {
             <TabsContent value="preferences" className="mt-0">
               <Card className="border border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-xl text-blue-600">Application Preferences</CardTitle>
+                  <CardTitle className="text-xl text-blue-600">
+                    Application Preferences
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="language" className="text-gray-700">Language</Label>
+                      <Label htmlFor="language" className="text-gray-700">
+                        Language
+                      </Label>
                       <Select
                         value={formData.preferences.language}
                         onValueChange={(value) =>
@@ -524,7 +604,9 @@ const Profile = () => {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="timezone" className="text-gray-700">Timezone</Label>
+                      <Label htmlFor="timezone" className="text-gray-700">
+                        Timezone
+                      </Label>
                       <Select
                         value={formData.preferences.timezone}
                         onValueChange={(value) =>
@@ -538,8 +620,12 @@ const Profile = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value="Asia/Bangkok">Asia/Bangkok (UTC+7)</SelectItem>
-                          <SelectItem value="Asia/Tokyo">Asia/Tokyo (UTC+9)</SelectItem>
+                          <SelectItem value="Asia/Bangkok">
+                            Asia/Bangkok (UTC+7)
+                          </SelectItem>
+                          <SelectItem value="Asia/Tokyo">
+                            Asia/Tokyo (UTC+9)
+                          </SelectItem>
                           <SelectItem value="UTC">UTC (UTC+0)</SelectItem>
                         </SelectContent>
                       </Select>
@@ -554,7 +640,9 @@ const Profile = () => {
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogContent className="sm:max-w-md bg-white border border-gray-200 text-gray-800">
               <DialogHeader>
-                <DialogTitle className="text-xl text-blue-600">Change Password</DialogTitle>
+                <DialogTitle className="text-xl text-blue-600">
+                  Change Password
+                </DialogTitle>
                 <DialogDescription className="text-gray-600">
                   Enter your current password and choose a new secure password.
                 </DialogDescription>
@@ -566,7 +654,9 @@ const Profile = () => {
                   { id: 'confirm', label: 'Confirm New Password', key: 'confirm' },
                 ].map((field) => (
                   <div key={field.id} className="space-y-2">
-                    <Label htmlFor={field.id} className="text-gray-700">{field.label}</Label>
+                    <Label htmlFor={field.id} className="text-gray-700">
+                      {field.label}
+                    </Label>
                     <div className="relative">
                       <Input
                         id={field.id}
@@ -589,7 +679,9 @@ const Profile = () => {
                         onClick={() =>
                           setShowPasswords({
                             ...showPasswords,
-                            [field.key]: !showPasswords[field.key as keyof typeof showPasswords],
+                            [field.key]: !showPasswords[
+                              field.key as keyof typeof showPasswords
+                            ],
                           })
                         }
                       >
@@ -604,14 +696,14 @@ const Profile = () => {
                 ))}
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setShowPasswordDialog(false)}
                   className="border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleChangePassword}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
@@ -622,7 +714,7 @@ const Profile = () => {
           </Dialog>
         </div>
       </div>
-    </DashboardLayout> 
+    </DashboardLayout>
   );
 };
 

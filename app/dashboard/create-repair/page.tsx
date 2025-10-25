@@ -22,29 +22,176 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, CheckCircle, Printer, FileText, Sparkles, User } from "lucide-react";
+import { Upload, X, CheckCircle, Printer, FileText, Sparkles, User, Loader2 } from "lucide-react";
 
 const CreateRepair = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  
+  // Form states
   const [printerModel, setPrinterModel] = useState("");
   const [printerBrand, setPrinterBrand] = useState("");
   const [customModel, setCustomModel] = useState("");
   const [customBrand, setCustomBrand] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [issueDesc, setIssueDesc] = useState("");
+  const [accessories, setAccessories] = useState("");
+  const [contactInfo, setContactInfo] = useState("");
+  const [notes, setNotes] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
     setShowConfirmation(true);
   };
 
-  const handleConfirm = () => {
-    alert("Repair Created Successfully - Repair #PR001 has been created and assigned to a technician.");
-    setShowConfirmation(false);
+  const uploadFile = async (file: File): Promise<string> => {
+    console.log('Uploading file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Upload error:', errorData);
+      throw new Error(errorData.error || 'เกิดข้อผิดพลาดในการอัพโหลดไฟล์');
+    }
+
+    const data = await response.json();
+    console.log('Upload success:', data);
+    return data.url;
+  };
+
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // อัพโหลดไฟล์ทั้งหมด
+      const imageUrls: string[] = [];
+      if (attachments.length > 0) {
+        setIsUploading(true);
+        try {
+          for (const file of attachments) {
+            const url = await uploadFile(file);
+            imageUrls.push(url);
+          }
+        } catch (uploadError) {
+          console.error('File upload failed:', uploadError);
+          throw new Error(`การอัพโหลดไฟล์ล้มเหลว: ${uploadError instanceof Error ? uploadError.message : 'ไม่ทราบสาเหตุ'}`);
+        } finally {
+          setIsUploading(false);
+        }
+      }
+
+      // ส่งข้อมูลไปยัง API
+      const response = await fetch('/api/repair-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          printerModel: isOtherModel ? customModel : printerModel,
+          serialNumber,
+          customerName,
+          customerPhone,
+          customerEmail,
+          customerAddress,
+          issueDesc,
+          accessories,
+          contactInfo,
+          notes,
+          images: imageUrls
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'เกิดข้อผิดพลาดในการสร้างคำขอซ่อม');
+      }
+
+      const data = await response.json();
+      setSuccess(`สร้างคำขอซ่อมเรียบร้อยแล้ว (ID: ${data.repairRequestId})`);
+      setShowConfirmation(false);
+      
+      // รีเซ็ตฟอร์ม
+      resetForm();
+
+    } catch (error) {
+      console.error('Error creating repair request:', error);
+      setError(error instanceof Error ? error.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ');
+    } finally {
+      setIsSubmitting(false);
+      setIsUploading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setPrinterModel("");
+    setPrinterBrand("");
+    setCustomModel("");
+    setCustomBrand("");
+    setSerialNumber("");
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerEmail("");
+    setCustomerAddress("");
+    setIssueDesc("");
+    setAccessories("");
+    setContactInfo("");
+    setNotes("");
+    setAttachments([]);
+    setUploadedImages([]);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setAttachments([...attachments, ...files.slice(0, 5 - attachments.length)]);
+    
+    // ตรวจสอบประเภทไฟล์
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
+    
+    const validFiles = files.filter(file => {
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      const isValidMimeType = allowedTypes.includes(file.type);
+      const isValidExtension = fileExtension && allowedExtensions.includes(fileExtension);
+      
+      if (!isValidMimeType && !isValidExtension) {
+        console.warn('Invalid file type:', {
+          name: file.name,
+          type: file.type,
+          extension: fileExtension
+        });
+        return false;
+      }
+      return true;
+    });
+    
+    if (validFiles.length !== files.length) {
+      setError('มีไฟล์บางไฟล์ที่ไม่รองรับ กรุณาเลือกไฟล์ JPG, PNG, GIF, WEBP, หรือ PDF เท่านั้น');
+    }
+    
+    setAttachments([...attachments, ...validFiles.slice(0, 5 - attachments.length)]);
   };
 
   const removeAttachment = (index: number) => {
@@ -70,6 +217,28 @@ const CreateRepair = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-8 pt-6">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <X className="h-4 w-4" />
+                  <span className="font-medium">เกิดข้อผิดพลาด:</span>
+                </div>
+                <p className="mt-1">{error}</p>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="font-medium">สำเร็จ:</span>
+                </div>
+                <p className="mt-1">{success}</p>
+              </div>
+            )}
+
             <form className="space-y-8" onSubmit={handleSubmit}>
               {/* Printer Information */}
               <section className="space-y-4">
@@ -83,6 +252,8 @@ const CreateRepair = () => {
                     <Label htmlFor="serial" className="text-sm font-semibold text-blue-800">Serial Number *</Label>
                     <Input
                       id="serial"
+                      value={serialNumber}
+                      onChange={(e) => setSerialNumber(e.target.value)}
                       placeholder="Enter printer serial number"
                       className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                       required
@@ -175,6 +346,8 @@ const CreateRepair = () => {
                   <div className="space-y-2">
                     <Textarea
                       id="symptoms"
+                      value={issueDesc}
+                      onChange={(e) => setIssueDesc(e.target.value)}
                       placeholder="Describe the printer issue in detail (e.g., paper jam, ink error, not printing)..."
                       className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 min-h-[195px]"
                       required
@@ -197,12 +370,12 @@ const CreateRepair = () => {
                       Drop files here or click to upload
                     </p>
                     <p className="text-xs text-slate-500 mb-3">
-                      JPG, PNG, PDF • Max 5 files
+                      JPG, PNG, GIF, WEBP, PDF • Max 5 files
                     </p>
                     <input
                       type="file"
                       multiple
-                      accept="image/*,.pdf"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,application/pdf"
                       onChange={handleFileUpload}
                       className="hidden"
                       id="file-upload"
@@ -252,6 +425,8 @@ const CreateRepair = () => {
                     <Label htmlFor="customer-name" className="text-sm font-semibold text-blue-800">Customer Name *</Label>
                     <Input
                       id="customer-name"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
                       placeholder="Enter customer name"
                       className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                       required
@@ -262,6 +437,8 @@ const CreateRepair = () => {
                     <Input
                       id="customer-phone"
                       type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder="Enter phone number"
                       className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                       required
@@ -272,6 +449,8 @@ const CreateRepair = () => {
                     <Input
                       id="customer-email"
                       type="email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
                       placeholder="Enter email address"
                       className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
@@ -280,6 +459,8 @@ const CreateRepair = () => {
                     <Label htmlFor="customer-address" className="text-sm font-semibold text-blue-800">Address</Label>
                     <Input
                       id="customer-address"
+                      value={customerAddress}
+                      onChange={(e) => setCustomerAddress(e.target.value)}
                       placeholder="Enter address"
                       className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
@@ -289,6 +470,8 @@ const CreateRepair = () => {
                   <Label htmlFor="notes" className="text-sm font-semibold text-blue-800">Additional Notes</Label>
                   <Textarea
                     id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
                     placeholder="Any additional information about the printer or location..."
                     rows={3}
                     className="border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
@@ -325,11 +508,11 @@ const CreateRepair = () => {
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 </div>
                 <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                  Confirm Repair Creation
+                  ยืนยันการสร้างคำขอซ่อม
                 </DialogTitle>
               </div>
               <DialogDescription className="text-base text-slate-600">
-                Are you sure you want to create this repair request? This will generate a new repair ID and notify the assigned technician.
+                คุณแน่ใจหรือไม่ที่จะสร้างคำขอซ่อมนี้? ระบบจะสร้าง ID คำขอซ่อมใหม่และแจ้งให้ช่างที่ได้รับมอบหมาย
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="gap-2">
@@ -337,14 +520,23 @@ const CreateRepair = () => {
                 variant="outline"
                 onClick={() => setShowConfirmation(false)}
                 className="border-2 border-slate-300 hover:bg-slate-100"
+                disabled={isSubmitting}
               >
-                Cancel
+                ยกเลิก
               </Button>
               <Button 
                 onClick={handleConfirm}
+                disabled={isSubmitting || isUploading}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg"
               >
-                Confirm & Create
+                {isSubmitting || isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isUploading ? 'กำลังอัพโหลดไฟล์...' : 'กำลังสร้างคำขอซ่อม...'}
+                  </>
+                ) : (
+                  'ยืนยันและสร้าง'
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>

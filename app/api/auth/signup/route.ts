@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 // POST /api/auth/signup
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const { name, email, password } = await request.json()
 

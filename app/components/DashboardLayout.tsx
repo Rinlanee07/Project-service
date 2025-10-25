@@ -1,19 +1,21 @@
-"use client";
+// components/DashboardLayout.tsx
+'use client';
 
-import { ReactNode, useState } from "react"; // ✅ import ReactNode
-import Header from "./Header";
-//import Sidebar from "./Sidebar";
+import { ReactNode } from 'react';
+import Header from './Header';
+import Sidebar from './Sidebar';
 
 interface DashboardLayoutProps {
-  children: ReactNode; // type ของ children
+  children: ReactNode;
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
-    <div className="min-h-screen bg-background flex">
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 p-6">{children}</main>
+    <div className="min-h-screen bg-[#FFFFFF] flex flex-col">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 p-4 md:p-6 ml-[72px] text-[#1F1F1F]">{children}</main>
       </div>
     </div>
   );
